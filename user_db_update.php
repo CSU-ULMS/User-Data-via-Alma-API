@@ -1,6 +1,8 @@
 <?php
+//update users from local database
 //db connection info - uncomment to activate script
-include("../../users/dbconn.php");
+//include("../../users/dbconn.php");
+include("config.php");
 
 //db connection and tests
 if(isset($host)){

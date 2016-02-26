@@ -1,4 +1,5 @@
 <?php
+include("config.php");
 header('Content-type: text/xml');
 $userid = $_GET["userid"];
 $templateParamNames = array('{user_id}');
@@ -7,7 +8,7 @@ $templateParamValues = array(urlencode($userid));
 $ch = curl_init();
 $url = 'https://api-na.hosted.exlibrisgroup.com/almaws/v1/users/{user_id}';
 $url = str_replace($templateParamNames, $templateParamValues, $url);
-$queryParams = '?' . urlencode('user_id_type') . '=' . urlencode('all_unique') . '&' . urlencode('view') . '=' . urlencode('full') . '&' . urlencode('apikey') . '=' . urlencode('l7xxb2e40b3c1ba1456792f30e66f413cda3');
+$queryParams = '?' . urlencode('user_id_type') . '=' . urlencode('all_unique') . '&' . urlencode('view') . '=' . urlencode('full') . '&' . urlencode('apikey') . '=' . urlencode($apikey);
 curl_setopt($ch, CURLOPT_URL, $url . $queryParams);
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
 curl_setopt($ch, CURLOPT_HEADER, FALSE);
