@@ -1,3 +1,3 @@
 # README #
 
-We used this to update accounts that retained the legacy library barcodes. Eventually, we'll factor this into our ILLiad script that checks user data in Alma.The ILLiad script is still using the SOAP API.
+This script pulls user data from Alma via it's API. The data is used to create, verify, and/or update user accounts in ILLiad. The script is called at point of authentication in ILLiad.

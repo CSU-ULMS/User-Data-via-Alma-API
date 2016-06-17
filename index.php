@@ -1,139 +1,101 @@
 <?php
 include("config.php");
 header('Content-type: text/xml');
-if (is_numeric($_GET["userid"]) && $_GET["userid"] != "" && strlen($_GET["userid"]) < 12) {
-	$userid = $_GET["userid"];
-	$templateParamNames = array('{user_id}');
-	$templateParamValues = array(urlencode($userid));
-	$userrecord = new DOMDocument();
+if ($_GET["userid"] != "" && strlen($_GET["userid"]) < 15) {
+  $userid = htmlspecialchars($_GET["userid"]);
+  $templateParamNames = array('{user_id}');
+  $templateParamValues = array(urlencode($userid));
+  $userrecord = new DOMDocument();
   $userrecord->formatOutput = true;
-	$userrecord->loadXML("<userdata/>");
-	$f = $userrecord->createDocumentFragment();
+  $userrecord->loadXML("<userdata/>");
+  $f = $userrecord->createDocumentFragment();
 
-	$ch = curl_init();
-	$url = 'https://api-na.hosted.exlibrisgroup.com/almaws/v1/users/{user_id}';
-	$url = str_replace($templateParamNames, $templateParamValues, $url);
-	$queryParams = '?' . urlencode('user_id_type') . '=' . urlencode('all_unique') . '&' . urlencode('view') . '=' . urlencode('full') . '&' . urlencode('apikey') . '=' . urlencode($apikey);
-	curl_setopt($ch, CURLOPT_URL, $url . $queryParams);
-	curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-	curl_setopt($ch, CURLOPT_HEADER, FALSE);
-	curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'GET');
-	$alluserdata = curl_exec($ch);
-	curl_close($ch);
+  $ch = curl_init();
+  $url = 'https://api-na.hosted.exlibrisgroup.com/almaws/v1/users/{user_id}';
+  $url = str_replace($templateParamNames, $templateParamValues, $url);
+  $queryParams = '?' . urlencode('user_id_type') . '=' . urlencode('all_unique') . '&' . urlencode('view') . '=' . urlencode('full') . '&' . urlencode('expand') . '=' . urlencode('loans,requests,fees') . '&' . urlencode('apikey') . '=' . urlencode($apikey);
+  curl_setopt($ch, CURLOPT_URL, $url . $queryParams);
+  curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+  curl_setopt($ch, CURLOPT_HEADER, FALSE);
+  curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'GET');
+  $alluserdata = curl_exec($ch);
+  curl_close($ch);
 
-	$alluserdatafragment = substr($alluserdata, strpos($alluserdata, '?'.'>') + 2);
-	$f->appendXML($alluserdatafragment);
+  $alluserdatafragment = substr($alluserdata, strpos($alluserdata, '?'.'>') + 2);
+  $f->appendXML($alluserdatafragment);
 
-	$ch = curl_init();
-	$url = 'https://api-na.hosted.exlibrisgroup.com/almaws/v1/users/{user_id}/loans';
-	$url = str_replace($templateParamNames, $templateParamValues, $url);
-	$queryParams = '?' . urlencode('apikey') . '=' . urlencode($apikey);
-	curl_setopt($ch, CURLOPT_URL, $url . $queryParams);
-	curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-	curl_setopt($ch, CURLOPT_HEADER, FALSE);
-	curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'GET');
-	$loansresponse = curl_exec($ch);
-	curl_close($ch);
-
-	$loansresponsefragment = substr($loansresponse, strpos($loansresponse, '?'.'>') + 2);
-	$f->appendXML($loansresponsefragment);
-
-	$ch = curl_init();
-	$url = 'https://api-na.hosted.exlibrisgroup.com/almaws/v1/users/{user_id}/fees';
-	$url = str_replace($templateParamNames, $templateParamValues, $url);
-	$queryParams = '?' . urlencode('user_id_type') . '=' . urlencode('all_unique') . '&' . urlencode('status') . '=' . urlencode('ACTIVE') . '&' . urlencode('apikey') . '=' . urlencode($apikey);
-	curl_setopt($ch, CURLOPT_URL, $url . $queryParams);
-	curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-	curl_setopt($ch, CURLOPT_HEADER, FALSE);
-	curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'GET');
-	$feesdata = curl_exec($ch);
-	curl_close($ch);
-
-	$feesdatafragment = substr($feesdata, strpos($feesdata, '?'.'>') + 2);
-	$f->appendXML($feesdatafragment);
-
-	$ch = curl_init();
-	$url = 'https://api-na.hosted.exlibrisgroup.com/almaws/v1/users/{user_id}/requests';
-	$url = str_replace($templateParamNames, $templateParamValues, $url);
-	$queryParams = '?' . urlencode('apikey') . '=' . urlencode($apikey);
-	curl_setopt($ch, CURLOPT_URL, $url . $queryParams);
-	curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-	curl_setopt($ch, CURLOPT_HEADER, FALSE);
-	curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'GET');
-	$requestsdata = curl_exec($ch);
-	curl_close($ch);
-
-	$requestsdatafragment = substr($requestsdata, strpos($requestsdata, '?'.'>') + 2);
-	$f->appendXML($requestsdatafragment);
-
-	$userrecord->documentElement->appendChild($f);
-	$user = $userrecord->saveXML(); 
+  $userrecord->documentElement->appendChild($f);
+  $user = $userrecord->saveXML(); 
   $user = simplexml_load_string($user);
   //print_r($user);
 
-	if ($user != "") {
-	  //start xml document
+  if ($user != "") {
+    //start xml document
     $useraddress1 = $user->xpath('/userdata/user/contact_info/addresses/address[@preferred="true"]');
     $email1 = $user->xpath('/userdata/user/contact_info/emails/email[@preferred="true"]');
     $phone1 = $user->xpath('/userdata/user/contact_info/phones/phone[@preferred="true"]');
-	  echo '<?xml version="1.0" encoding="utf-8"?>'. "\n";
-	  $xml_output = "";
-	  $xml_output .= "\t<entry>\n";
-	  $xml_output .= "\t\t<fname>" . $user->user->first_name . "</fname>\n";
-	  $xml_output .= "\t\t<lname>" . $user->user->last_name . "</lname>\n";
-	  foreach ($user->user->identifiers as $id) {
-	    $xml_output .= "\t\t<" . $id->type . ">" . $id->value . "</" . $id->type . ">\n";
-	  }
-	  $xml_output .= "\t\t<username>" . $user->user->primary_id . "</username>\n";
-	  $xml_output .= "\t\t<groupid>" . $user->user->user_group . "</groupid>\n";
-	  $xml_output .= "\t\t<email>" . $email1[0]->email_address . "</email>\n";
-	  $xml_output .= "\t\t<phone>" . $phone1[0]->phone_number . "</phone>\n";
+    $dept1 = $user->xpath('/userdata/user/user_statistics/user_statistic[@segment_type="External"]');
+    if (count($dept1) == 0){
+          $dept1 = $user->xpath('/userdata/user/user_statistics/user_statistic');
+    }
+    echo '<?xml version="1.0" encoding="utf-8"?>'. "\n";
+    $xml_output = "";
+    $xml_output .= "\t<entry>\n";
+    $xml_output .= "\t\t<fname>" . $user->user->first_name . "</fname>\n";
+    $xml_output .= "\t\t<lname>" . $user->user->last_name . "</lname>\n";
+    foreach ($user->user->identifiers as $id) {
+      $xml_output .= "\t\t<" . $id->type . ">" . $id->value . "</" . $id->type . ">\n";
+    }
+    $xml_output .= "\t\t<username>" . $user->user->primary_id . "</username>\n";
+    $xml_output .= "\t\t<groupid>" . $user->user->user_group . "</groupid>\n";
+    $xml_output .= "\t\t<email>" . $email1[0]->email_address . "</email>\n";
+    $xml_output .= "\t\t<phone>" . $phone1[0]->phone_number . "</phone>\n";
 
-	  if (strstr($useraddress1[0]->line1, "Social and Behavioral Science Building")){
-	    $userstaddress = str_replace("Social and Behavioral Science Building", "SBSB", $useraddress1[0]->line1);
-	  } else {
+    if (strstr($useraddress1[0]->line1, "Social and Behavioral Science Building")){
+      $userstaddress = str_replace("Social and Behavioral Science Building", "SBSB", $useraddress1[0]->line1);
+    } else {
       $userstaddress = $useraddress1[0]->line1;
     }
-	  $xml_output .= "\t\t<streetaddr1>" . $userstaddress . "</streetaddr1>\n";
-	  $xml_output .= "\t\t<city>" . $useraddress1[0]->city . "</city>\n";
-	  if (strlen($useraddress1[0]->state_province) > 2){
-	    $stateabbr = convert_state_to_abbreviation($useraddress1[0]->state_province);
-	  } else {
-	    $stateabbr = $useraddress1[0]->state_province;
-	  }
-	  $xml_output .= "\t\t<state>" . $stateabbr . "</state>\n";
-	  $xml_output .= "\t\t<zipcode>" . $useraddress1[0]->postal_code . "</zipcode>\n";
-	  $expyear = substr($user->user->expiry_date, 0, 4);
-	  $expmonth = substr($user->user->expiry_date, 5, 2);
-	  $expday = substr($user->user->expiry_date, 8, 2);
-	  $xml_output .= "\t\t<expdate>" . $expmonth . "/" . $expday . "/" . $expyear . "</expdate>\n";
-	  $modyear = substr($user->moddate, 0, 4);
-	  $modmonth = substr($user->moddate, 4, 2);
-	  $modday = substr($user->moddate, 6, 2);
-	  $xml_output .= "\t\t<moddate>" . $modmonth . "/" . $modday . "/" . $modyear . "</moddate>\n";
-	  $xml_output .= "\t\t<deptid>" . $user->user->dept_id . "</deptid>\n";
-	  $xml_output .= "\t\t<blocks>";
-	  $blockstatues = array();
-	  foreach ($user->user->blocks as $block) {
-	    $xml_output .= "\t" . $block->code . " " . $block->_type . " " . $block->status . " ";
-	    $xml_output .= $block->creation_date . " " . $block->modification_date . "\n";
-	    $blockstatues[] = $block->status;
-	  }
-	  $xml_output .= "\t\t</blocks>\n";
-	  if (in_array("Active", $blockstatues)){
-	    $blockstatus = "Active";
-	  } else{
-	    $blockstatus = "-";
-	  }
-	  $xml_output .= "\t\t<blockstatus>" . $blockstatus . "</blockstatus>\n";
-	  $xml_output .= "\t\t<fines>\n";
-	  $xml_output .= "\t\t</fines>\n";
-	  $xml_output .= "\t</entry>\n";
+    $xml_output .= "\t\t<streetaddr1>" . $userstaddress . "</streetaddr1>\n";
+    $xml_output .= "\t\t<city>" . $useraddress1[0]->city . "</city>\n";
+    if (strlen($useraddress1[0]->state_province) > 2){
+      $stateabbr = convert_state_to_abbreviation($useraddress1[0]->state_province);
+    } else {
+      $stateabbr = $useraddress1[0]->state_province;
+    }
+    $xml_output .= "\t\t<state>" . $stateabbr . "</state>\n";
+    $xml_output .= "\t\t<zipcode>" . $useraddress1[0]->postal_code . "</zipcode>\n";
+    $expyear = substr($user->user->expiry_date, 0, 4);
+    $expmonth = substr($user->user->expiry_date, 5, 2);
+    $expday = substr($user->user->expiry_date, 8, 2);
+    $xml_output .= "\t\t<expdate>" . $expmonth . "/" . $expday . "/" . $expyear . "</expdate>\n";
+    $modyear = substr($user->moddate, 0, 4);
+    $modmonth = substr($user->moddate, 4, 2);
+    $modday = substr($user->moddate, 6, 2);
+    $xml_output .= "\t\t<moddate>06/01/2016</moddate>\n";
+    $xml_output .= "\t\t<deptid>" . $dept1[0]->statistic_category . "</deptid>\n";
+    $xml_output .= "\t\t<blocks>";
+    $blockstatues = array();
+    foreach ($user->user->blocks as $block) {
+      $xml_output .= "\t" . $block->code . " " . $block->_type . " " . $block->status . " ";
+      $xml_output .= $block->creation_date . " " . $block->modification_date . "\n";
+      $blockstatues[] = $block->status;
+    }
+    $xml_output .= "\t\t</blocks>\n";
+    if (in_array("Active", $blockstatues)){
+      $blockstatus = "Active";
+    } else{
+      $blockstatus = "-";
+    }
+    $xml_output .= "\t\t<blockstatus>" . $blockstatus . "</blockstatus>\n";
+    $xml_output .= "\t\t<fines>\n";
+    $xml_output .= "\t\t</fines>\n";
+    $xml_output .= "\t</entry>\n";
 
-	  echo $xml_output;
-	} else {
-	  echo $user_services->lastError()->message . "\n";
-	}
+    echo $xml_output;
+  } else {
+    echo $user_services->lastError()->message . "\n";
+  }
 }
 
 function check_zip_state_in_addrtwo($streetaddr2){
