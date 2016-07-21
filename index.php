@@ -31,7 +31,8 @@ if ($_GET["userid"] != "" && strlen($_GET["userid"]) < 15) {
 
   if ($user != "") {
     //start xml document
-    $useraddress1 = $user->xpath('/userdata/user/contact_info/addresses/address[@preferred="true"]');
+    $useraddressfull = $user->xpath('/userdata/user/contact_info/addresses/address[@preferred="true"]');
+    $userstaddress2 = "";
     $email1 = $user->xpath('/userdata/user/contact_info/emails/email[@preferred="true"]');
     $phone1 = $user->xpath('/userdata/user/contact_info/phones/phone[@preferred="true"]');
     $dept1 = $user->xpath('/userdata/user/user_statistics/user_statistic[@segment_type="External"]');
@@ -51,20 +52,29 @@ if ($_GET["userid"] != "" && strlen($_GET["userid"]) < 15) {
     $xml_output .= "\t\t<email>" . $email1[0]->email_address . "</email>\n";
     $xml_output .= "\t\t<phone>" . $phone1[0]->phone_number . "</phone>\n";
 
-    if (strstr($useraddress1[0]->line1, "Social and Behavioral Science Building")){
-      $userstaddress = str_replace("Social and Behavioral Science Building", "SBSB", $useraddress1[0]->line1);
+    if (strstr($useraddressfull[0]->line1, "Social and Behavioral Science Building")){
+      $userstaddress1 = str_replace("Social and Behavioral Science Building", "SBSB", $useraddressfull[0]->line1);
     } else {
-      $userstaddress = $useraddress1[0]->line1;
+      $userstaddress1 = $useraddressfull[0]->line1;
     }
-    $xml_output .= "\t\t<streetaddr1>" . $userstaddress . "</streetaddr1>\n";
-    $xml_output .= "\t\t<city>" . $useraddress1[0]->city . "</city>\n";
-    if (strlen($useraddress1[0]->state_province) > 2){
-      $stateabbr = convert_state_to_abbreviation($useraddress1[0]->state_province);
+    if (strlen($userstaddress1) > 40) {
+      $userstaddressSplit = str_split($userstaddress1, strrpos(substr($userstaddress1, 0, 39), ' '));
+      $userstaddress1 = $userstaddressSplit[0];
+      $userstaddress2 .= $userstaddressSplit[1];
+    }
+    if ($useraddressfull[0]->line2 != ""){
+      $userstaddress2 .= ", " . $useraddressfull[0]->line2;
+    }
+    $xml_output .= "\t\t<streetaddr1>" . $userstaddress1 . "</streetaddr1>\n";
+    $xml_output .= "\t\t<streetaddr2>" . $userstaddress2 . "</streetaddr2>\n";
+    $xml_output .= "\t\t<city>" . $useraddressfull[0]->city . "</city>\n";
+    if (strlen($useraddressfull[0]->state_province) > 2){
+      $stateabbr = convert_state_to_abbreviation($useraddressfull[0]->state_province);
     } else {
-      $stateabbr = $useraddress1[0]->state_province;
+      $stateabbr = $useraddressfull[0]->state_province;
     }
     $xml_output .= "\t\t<state>" . $stateabbr . "</state>\n";
-    $xml_output .= "\t\t<zipcode>" . $useraddress1[0]->postal_code . "</zipcode>\n";
+    $xml_output .= "\t\t<zipcode>" . $useraddressfull[0]->postal_code . "</zipcode>\n";
     $expyear = substr($user->user->expiry_date, 0, 4);
     $expmonth = substr($user->user->expiry_date, 5, 2);
     $expday = substr($user->user->expiry_date, 8, 2);
