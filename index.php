@@ -37,7 +37,7 @@ if ($_GET["userid"] != "" && strlen($_GET["userid"]) < 15) {
     $phone1 = $user->xpath('/userdata/user/contact_info/phones/phone[@preferred="true"]');
     $dept1 = $user->xpath('/userdata/user/user_statistics/user_statistic[@segment_type="External"]');
     if (count($dept1) == 0){
-          $dept1 = $user->xpath('/userdata/user/user_statistics/user_statistic');
+      $dept1 = $user->xpath('/userdata/user/user_statistics/user_statistic');
     }
     echo '<?xml version="1.0" encoding="utf-8"?>'. "\n";
     $xml_output = "";
@@ -53,7 +53,6 @@ if ($_GET["userid"] != "" && strlen($_GET["userid"]) < 15) {
     $xml_output .= "\t\t<phone>" . $phone1[0]->phone_number . "</phone>\n";
 
     $userstaddress1 = $useraddressfull[0]->line1;
-    
     if (strlen($userstaddress1) > 40) {
       $userstaddressSplit = str_split($userstaddress1, strrpos(substr($userstaddress1, 0, 39), ' '));
       $userstaddress1 = $userstaddressSplit[0];
@@ -62,8 +61,8 @@ if ($_GET["userid"] != "" && strlen($_GET["userid"]) < 15) {
     if ($useraddressfull[0]->line2 != ""){
       $userstaddress2 .= ", " . $useraddressfull[0]->line2;
     }
-    $xml_output .= "\t\t<streetaddr1>" . $userstaddress1 . "</streetaddr1>\n";
-    $xml_output .= "\t\t<streetaddr2>" . $userstaddress2 . "</streetaddr2>\n";
+    $xml_output .= "\t\t<streetaddr1>" . htmlspecialchars($userstaddress1) . "</streetaddr1>\n";
+    $xml_output .= "\t\t<streetaddr2>" . htmlspecialchars($userstaddress2) . "</streetaddr2>\n";
     $xml_output .= "\t\t<city>" . $useraddressfull[0]->city . "</city>\n";
     if (strlen($useraddressfull[0]->state_province) > 2){
       $stateabbr = convert_state_to_abbreviation($useraddressfull[0]->state_province);
