@@ -52,11 +52,8 @@ if ($_GET["userid"] != "" && strlen($_GET["userid"]) < 15) {
     $xml_output .= "\t\t<email>" . $email1[0]->email_address . "</email>\n";
     $xml_output .= "\t\t<phone>" . $phone1[0]->phone_number . "</phone>\n";
 
-    if (strstr($useraddressfull[0]->line1, "Social and Behavioral Science Building")){
-      $userstaddress1 = str_replace("Social and Behavioral Science Building", "SBSB", $useraddressfull[0]->line1);
-    } else {
-      $userstaddress1 = $useraddressfull[0]->line1;
-    }
+    $userstaddress1 = $useraddressfull[0]->line1;
+    
     if (strlen($userstaddress1) > 40) {
       $userstaddressSplit = str_split($userstaddress1, strrpos(substr($userstaddress1, 0, 39), ' '));
       $userstaddress1 = $userstaddressSplit[0];
